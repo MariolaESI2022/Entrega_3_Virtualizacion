@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  brokerSvc:
+    image: jcaba/mqttbroker-alpine:latest
+    networks:
+      - mqtt
+    ports:
+      - "8888:2883"
+    deploy:
+      replicas: 1
+    
+  pubSvc:
+    image: jcaba/mqttpub-alpine:latest 
+    depends_on:
+      - "brokerSvc"
+    networks:
+      - mqtt
+    command: ["Hola!!!"]
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 8M
+
+networks:
+  mqtt:
+    driver: overlay

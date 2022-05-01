@@ -1,0 +1,14 @@
+---
+- hosts: all
+  tasks:
+    - name: Ping to all nodes
+      ping:
+    - name: Install Docker
+      become: true
+      apt: name=docker.io state=latest update_cache=true
+      notify:
+        - Add user to Docker group
+  handlers:
+    - name: Add user to Docker group
+      become: true
+      shell: adduser vagrant docker

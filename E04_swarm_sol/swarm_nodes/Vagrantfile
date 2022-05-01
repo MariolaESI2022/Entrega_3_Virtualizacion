@@ -1,0 +1,50 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+BOX_NAME = "ubuntu/focal64"
+MEMORY = "512"
+CPUS = 1
+MANAGERS = 1
+WORKERS = 2
+
+
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = BOX_NAME
+  #"ubuntu/focal64"
+
+  config.vm.network "public_network", bridge: "wlp2s0"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = MEMORY
+    vb.cpus = CPUS
+  end
+
+  (1..MANAGERS).each do |i|
+    config.vm.define "manager#{i}" do |manager|
+      manager.vm.hostname = "manager#{i}"
+      manager.vm.network "forwarded_port", guest: 8888, host: 8090+i
+      #if i == 1 then
+      manager.vm.synced_folder "mqtt_swarm", "/mqtt_swarm"
+      #end
+    end
+  end
+
+  (1..WORKERS).each do |i|
+    config.vm.define "worker#{i}" do |worker|
+      worker.vm.hostname = "worker#{i}"
+      worker.vm.network "forwarded_port", guest: 8888, host: 8080+i
+    end
+end
+  
+end

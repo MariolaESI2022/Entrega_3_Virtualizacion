@@ -1,0 +1,7 @@
+[managers]
+manager1 ansible_ssh_host=192.168.1.105 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/manager1/virtualbox/private_key
+
+
+[workers]
+worker1 ansible_ssh_host=192.168.1.107 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/worker1/virtualbox/private_key
+worker2 ansible_ssh_host=192.168.1.108 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/worker2/virtualbox/private_key
