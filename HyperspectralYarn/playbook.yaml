@@ -1,0 +1,83 @@
+---
+- hosts: all
+  tasks: 
+    - name: Install dependencies
+      become: true
+      apt:   
+        pkg:
+        - wget
+        - openjdk-11-jdk
+        - openssh-server
+        - openssh-client
+        state: present
+    - name: Start openssh-server
+      become: true
+      service: 
+        name: sshd
+        state: started
+
+    - name: Check hadoop
+      shell: |
+        test -d /opt/hadoop
+        echo $?
+      register: hadoop_installed
+
+    - name: Download hadoop
+      shell: wget http://apache.rediris.es/hadoop/core/hadoop-3.3.1/hadoop-3.3.1.tar.gz
+      when: hadoop_installed.stdout != '0'
+    - name: Install hadoop
+      become: true
+      shell: |
+        tar -xzf hadoop-3.3.1.tar.gz
+        mv hadoop-3.3.1 /opt/hadoop
+      when: hadoop_installed.stdout != '0'
+    - name: Copy hadoop configuration
+      become: true
+      copy:
+        src: hadoop 
+        dest: /opt/hadoop/etc/
+      when: hadoop_installed.stdout != '0'
+
+    - name: Change hadoop permissions
+      become: true
+      shell: chmod -R 777 /opt/hadoop
+      when: hadoop_installed.stdout != '0'
+
+    - name: Check HADOOP_HOME env variable
+      shell: |
+        grep -q HADOOP_HOME .bashrc
+        echo $?
+      register: hadoop_present
+
+    - name: Add HADOOP_HOME env variable
+      shell: |
+        echo HADOOP_HOME=/opt/hadoop >> .bashrc
+        echo PATH=$PATH:$HADOOP_HOME/bin >> .bashrc
+      when: hadoop_present.stdout != '0'
+
+    - name: Check JAVA_HOME env variable
+      shell: |
+        grep -q JAVA_HOME .bashrc
+        echo $?
+      register: java_present
+
+    - name: Add JAVA_HOME env variable
+      shell: |
+        echo JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/ >> .bashrc
+        echo PATH=$PATH:$JAVA_HOME/bin >> .bashrc
+      when: java_present.stdout != '0'
+
+    - name: Check hosts
+      shell: |
+        grep -q "hadoop-master" /etc/hosts
+        echo $?
+      register: hosts_changed
+
+    - name: Map host names
+      become: true
+      shell: |
+        echo 192.168.56.1    hadoop-master >> /etc/hosts
+        echo 192.168.56.2    hadoop-worker1 >> /etc/hosts
+        echo 192.168.56.3    hadoop-worker2 >> /etc/hosts
+        echo 192.168.56.4    hadoop-worker3 >> /etc/hosts
+      when: hosts_changed.stdout != '0'
