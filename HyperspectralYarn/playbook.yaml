@@ -8,7 +8,6 @@
         - wget
         - openjdk-11-jdk
         - openssh-server
-        - openssh-client
         state: present
     - name: Start openssh-server
       become: true
